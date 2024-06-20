@@ -1,13 +1,16 @@
-import { Controller, Post, UseGuards, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { z } from 'zod';
 
 import { CurrentUser } from 'src/auth/current-user.decorator';
-import { TokenPayloadSchema } from 'src/auth/jwt.strategy';
+import { UserPayload } from 'src/auth/jwt.strategy';
 import { ZodValidationPipe } from 'src/pipes/zod-validation';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-const createQuestionBodySchema = z.object({});
+const createQuestionBodySchema = z.object({
+  title: z.string(),
+  content: z.string(),
+});
 
 type CreateQuestionBodySchema = z.infer<typeof createQuestionBodySchema>;
 
@@ -17,6 +20,33 @@ export class CreateQuestionController {
   constructor(private prisma: PrismaService) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createQuestionBodySchema))
-  async handle(@CurrentUser() user: TokenPayloadSchema) {}
+  async handle(
+    @Body(new ZodValidationPipe(createQuestionBodySchema))
+    body: CreateQuestionBodySchema,
+    @CurrentUser() user: UserPayload,
+  ) {
+    const { title, content } = body;
+    const userId = user.sub;
+
+    await this.prisma.question.create({
+      data: {
+        authorId: userId,
+        title,
+        content,
+        slug: this.slugify(title),
+      },
+    });
+  }
+
+  slugify(text: string) {
+    const normalizedText = text
+      .normalize('NFKD')
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .replace(/-$/, '');
+
+    return normalizedText;
+  }
 }

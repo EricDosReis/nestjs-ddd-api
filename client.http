@@ -28,3 +28,8 @@ Content-Type: application/json
 POST {{baseUrl}}/questions
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
+
+{
+  "title": "Question title",
+  "content": "Question content"
+}
