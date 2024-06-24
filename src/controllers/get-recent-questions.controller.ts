@@ -24,7 +24,7 @@ export class GetRecentQuestionsController {
     @Query('page', new ZodValidationPipe(pageQueryParamSchema))
     page: PageQueryParamSchema,
   ) {
-    const ITEMS_PER_PAGE = 1;
+    const ITEMS_PER_PAGE = 20;
     const questions = await this.prisma.question.findMany({
       take: ITEMS_PER_PAGE,
       skip: (page - 1) * ITEMS_PER_PAGE,
