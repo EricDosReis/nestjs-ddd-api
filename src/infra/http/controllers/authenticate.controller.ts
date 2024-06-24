@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { z } from 'zod';
 
-import { ZodValidationPipe } from '@/pipes/zod-validation';
-import { PrismaService } from '@/prisma/prisma.service';
+import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation';
+import { PrismaService } from '@/infra/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
 
