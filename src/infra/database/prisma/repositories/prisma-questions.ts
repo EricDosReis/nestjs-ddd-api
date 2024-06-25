@@ -10,16 +10,31 @@ import { PrismaService } from '../prisma.service';
 export class PrismaQuestionsRepository implements QuestionsRepository {
   constructor(private prisma: PrismaService) {}
 
-  create(question: Question): Promise<void> {
-    throw new Error('Method not implemented.');
+  async create(question: Question): Promise<void> {
+    const data = PrismaQuestionMapper.toPersistence(question);
+
+    await this.prisma.question.create({ data });
   }
 
-  save(question: Question): Promise<void> {
-    throw new Error('Method not implemented.');
+  async save(question: Question): Promise<void> {
+    const data = PrismaQuestionMapper.toPersistence(question);
+
+    await this.prisma.question.update({
+      where: {
+        id: data.id,
+      },
+      data,
+    });
   }
 
-  delete(question: Question): Promise<void> {
-    throw new Error('Method not implemented.');
+  async delete(question: Question): Promise<void> {
+    const data = PrismaQuestionMapper.toPersistence(question);
+
+    await this.prisma.question.delete({
+      where: {
+        id: data.id,
+      },
+    });
   }
 
   async findById(id: string): Promise<Question | null> {
@@ -36,11 +51,29 @@ export class PrismaQuestionsRepository implements QuestionsRepository {
     return PrismaQuestionMapper.toDomain(question);
   }
 
-  findBySlug(slug: string): Promise<Question | null> {
-    throw new Error('Method not implemented.');
+  async findBySlug(slug: string): Promise<Question | null> {
+    const question = await this.prisma.question.findUnique({
+      where: {
+        slug,
+      },
+    });
+
+    if (!question) {
+      return null;
+    }
+
+    return PrismaQuestionMapper.toDomain(question);
   }
 
-  findManyRecent(pagination: Pagination): Promise<Question[]> {
-    throw new Error('Method not implemented.');
+  async findManyRecent({ page }: Pagination): Promise<Question[]> {
+    const questions = await this.prisma.question.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 20,
+      skip: (page - 1) * 20,
+    });
+
+    return questions.map(PrismaQuestionMapper.toDomain);
   }
 }
