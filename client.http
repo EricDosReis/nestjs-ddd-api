@@ -37,6 +37,6 @@ Authorization: Bearer {{accessToken}}
 ###
 
 # @name get_recent_questions
-GET {{baseUrl}}/questions?page=2
+GET {{baseUrl}}/questions
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
