@@ -2,9 +2,9 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { z } from 'zod';
 
+import { CreateQuestionUseCase } from '@/domain/forum/application/use-cases/create-question';
 import { CurrentUser } from '@/infra/auth/current-user.decorator';
 import { UserPayload } from '@/infra/auth/jwt.strategy';
-import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation';
 
 const createQuestionBodySchema = z.object({
@@ -17,7 +17,7 @@ type CreateQuestionBodySchema = z.infer<typeof createQuestionBodySchema>;
 @Controller('/questions')
 @UseGuards(AuthGuard('jwt'))
 export class CreateQuestionController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private createQuestionUseCase: CreateQuestionUseCase) {}
 
   @Post()
   async handle(
@@ -28,25 +28,11 @@ export class CreateQuestionController {
     const { title, content } = body;
     const userId = user.sub;
 
-    await this.prisma.question.create({
-      data: {
-        authorId: userId,
-        title,
-        content,
-        slug: this.slugify(title),
-      },
+    await this.createQuestionUseCase.execute({
+      title,
+      content,
+      authorId: userId,
+      attachmentsIds: [],
     });
-  }
-
-  slugify(text: string) {
-    const normalizedText = text
-      .normalize('NFKD')
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/--+/g, '-')
-      .replace(/-$/, '');
-
-    return normalizedText;
   }
 }

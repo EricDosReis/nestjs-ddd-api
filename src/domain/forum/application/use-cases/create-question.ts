@@ -1,16 +1,18 @@
+import { Injectable } from '@nestjs/common';
+
 import { UniqueEntityID } from '@/core/entities/unique-entity-id';
 import type { Either } from '@/core/error-handling/either';
 import { success } from '@/core/error-handling/success';
 import { Question } from '../../enterprise/entities/question';
 import { QuestionAttachment } from '../../enterprise/entities/question-attachment';
 import { QuestionAttachmentWatchedList } from '../../enterprise/entities/question-attachment-watched-list';
-import type { QuestionsRepository } from '../repositories/questions';
+import { QuestionsRepository } from '../repositories/questions';
 
 interface CreateQuestionUseCaseArguments {
   title: string;
   content: string;
   attachmentsIds: string[];
-  authorId: UniqueEntityID;
+  authorId: string;
 }
 
 type CreateQuestionUseCaseResponse = Either<
@@ -20,6 +22,7 @@ type CreateQuestionUseCaseResponse = Either<
   }
 >;
 
+@Injectable()
 export class CreateQuestionUseCase {
   constructor(private questionsRepository: QuestionsRepository) {}
 
@@ -32,7 +35,7 @@ export class CreateQuestionUseCase {
     const question = Question.create({
       title,
       content,
-      authorId,
+      authorId: new UniqueEntityID(authorId),
     });
 
     const questionAttachments = attachmentsIds.map((attachmentId) => {
